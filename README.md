@@ -18,3 +18,5 @@ Run the monitor tool:
 ```bash
 
 sudo python src/monitor.py -i <network_interface> -o <output_csv_file>
+```
+Replace <network_interface> with the name of the network interface you want to monitor (e.g., eth0, wlan0), and <output_csv_file> with the name of the output CSV file.
