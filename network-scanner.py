@@ -3,6 +3,8 @@ import socket
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import ipaddress
+import requests
+import os
 
 lock = threading.Lock()
 
@@ -62,7 +64,29 @@ def validate_ip(ip):
     except ValueError:
         return False
 
+def check_for_update():
+    url = "https://raw.githubusercontent.com/your-username/your-repository/main/version.txt"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        with open("version.txt", "r") as file:
+            current_version = file.read().strip()
+        latest_version = response.text.strip()
+        
+        if current_version != latest_version:
+            print("A new version of the tool is available.")
+            choice = input("Do you want to update the tool? (yes/no): ").strip().lower()
+            if choice == 'yes':
+                os.system("python update_tool.py")
+                exit()
+            else:
+                print("Continuing with the current version.")
+    else:
+        print("Failed to check for updates. Please check your internet connection.")
+
 def main():
+    check_for_update()
+    
     user_input = input("Enter IP address or IP range (e.g., 192.168.1.1 or 192.168.1.1-192.168.1.254): ")
     ports = [22, 80, 443, 8080]
 
