@@ -1,6 +1,6 @@
 # Network Scanner Tool
 
-This project contains a tool for scanning network and IPs using Scapy .
+This tool is used for scanning the local network (e.g., 192.168.1.x range) for active devices, open ports, and potential vulnerabilities, printing the results to the console. Adjust the IP range and ports as needed for your network environment.
 
 ## Installation
 
@@ -19,4 +19,4 @@ Run the tool:
 
 python network_scanner.py
 ```
-This script will scan the local network (e.g., 192.168.1.x range) for active devices, open ports, and potential vulnerabilities, printing the results to the console. Adjust the IP range and ports as needed for your network environment.
+
