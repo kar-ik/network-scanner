@@ -65,7 +65,7 @@ def validate_ip(ip):
         return False
 
 def check_for_update():
-    url = "https://raw.githubusercontent.com/your-username/your-repository/main/version.txt"
+    url = "https://raw.githubusercontent.com/kar-ik/network-scanner/main/version.txt"
     response = requests.get(url)
     
     if response.status_code == 200:
