@@ -1,23 +1,18 @@
-import requests
 import os
+import subprocess
 
-def update_script():
-    url = "https://github.com/kar-ik/network-scanner"
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        with open("network_scanner.py", "w") as file:
-            file.write(response.text)
-        print("The tool has been updated successfully.")
-    else:
-        print("Failed to update the tool. Please check the URL or your internet connection.")
+def update_tool():
+    try:
+        # Check if git is installed
+        subprocess.run(["git", "--version"], check=True)
 
-def main():
-    choice = input("Do you want to update the tool? (yes/no): ").strip().lower()
-    if choice == 'yes' 'y':
-        update_script()
-    else:
-        print("Update canceled.")
+        # Pull the latest changes from the repository
+        subprocess.run(["git", "pull"], check=True)
+        print("Tool updated successfully.")
+    except subprocess.CalledProcessError as e:
+        print("An error occurred while updating the tool:", e)
+    except FileNotFoundError:
+        print("Git is not installed. Please install Git to use this update feature.")
 
 if __name__ == "__main__":
-    main()
+    update_tool()
