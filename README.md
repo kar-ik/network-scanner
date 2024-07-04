@@ -1,6 +1,6 @@
 # Network Traffic Monitor
 
-This project contains a tool for real-time network traffic monitoring and analysis using Scapy and Pandas.
+This project contains a tool for real-time network traffic monitoring and analysis using Scapy .
 
 ## Installation
 
@@ -13,10 +13,10 @@ pip install -r requirements.txt
 ```
 # Usage
 
-Run the monitor tool:
+Run the tool:
 
 ```bash
 
-sudo python src/monitor.py -i <network_interface> -o <output_csv_file>
+python network_scanner.py
 ```
-Replace <network_interface> with the name of the network interface you want to monitor (e.g., eth0, wlan0), and <output_csv_file> with the name of the output CSV file.
+This script will scan the local network (e.g., 192.168.1.x range) for active devices, open ports, and potential vulnerabilities, printing the results to the console. Adjust the IP range and ports as needed for your network environment.
