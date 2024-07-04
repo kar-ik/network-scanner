@@ -7,8 +7,8 @@ This project contains a tool for scanning network and IPs using Scapy .
 Clone the repository and install the dependencies:
 
 ```bash
-git clone https://github.com/kar-ik/network-traffic-monitor.git
-cd network-traffic-monitor
+git clone https://github.com/kar-ik/network-scanner.git
+cd network-scanner
 pip install -r requirements.txt
 ```
 ## Usage
