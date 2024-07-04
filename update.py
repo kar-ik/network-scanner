@@ -2,7 +2,7 @@ import requests
 import os
 
 def update_script():
-    url = "https://github.com/kar-ik/network-scanner.git"
+    url = "https://github.com/kar-ik/network-scanner"
     response = requests.get(url)
     
     if response.status_code == 200:
