@@ -2,6 +2,7 @@ import scapy.all as scapy
 import socket
 from concurrent.futures import ThreadPoolExecutor
 import threading
+import ipaddress
 
 lock = threading.Lock()
 
@@ -30,7 +31,6 @@ def scan_ports(ip, ports):
     return open_ports
 
 def check_vulnerabilities(ip, open_ports):
-    # Placeholder function for vulnerability checks.
     vulnerabilities = []
     for port in open_ports:
         if port == 22:
@@ -55,23 +55,53 @@ def scan_network(ip_range, ports):
 
     return results
 
+def validate_ip(ip):
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False
+
 def main():
-    ip_prefix = "192.168.1."
-    ip_range = [f"{ip_prefix}{i}" for i in range(1, 255)]
+    user_input = input("Enter IP address or IP range (e.g., 192.168.1.1 or 192.168.1.1-192.168.1.254): ")
     ports = [22, 80, 443, 8080]
 
+    if '-' in user_input:
+        start_ip, end_ip = user_input.split('-')
+        if not (validate_ip(start_ip) and validate_ip(end_ip)):
+            print("Invalid IP range. Please enter a valid IP address or range.")
+            return
+
+        start_ip = ipaddress.IPv4Address(start_ip)
+        end_ip = ipaddress.IPv4Address(end_ip)
+        ip_range = [str(ip) for ip in ipaddress.summarize_address_range(start_ip, end_ip)]
+    else:
+        if not validate_ip(user_input):
+            print("Invalid IP address. Please enter a valid IP address.")
+            return
+
+        ip_range = [user_input]
+
     print("Starting network scan...")
+
     results = scan_network(ip_range, ports)
 
+    if not results:
+        print("No active devices found in the specified range.")
+        return
+
     for ip, details in results.items():
-        print(f"\nIP Address: {ip}")
-        print(f"Open Ports: {details['open_ports']}")
-        if details['vulnerabilities']:
-            print("Vulnerabilities:")
-            for vulnerability in details['vulnerabilities']:
-                print(f"  - {vulnerability}")
+        if not details['open_ports']:
+            print(f"\nIP Address: {ip} is not connected or has no open ports.")
         else:
-            print("No known vulnerabilities detected.")
+            print(f"\nIP Address: {ip}")
+            print(f"Open Ports: {details['open_ports']}")
+            if details['vulnerabilities']:
+                print("Vulnerabilities:")
+                for vulnerability in details['vulnerabilities']:
+                    print(f"  - {vulnerability}")
+            else:
+                print("No known vulnerabilities detected.")
 
 if __name__ == "__main__":
     main()
