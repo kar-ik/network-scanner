@@ -36,9 +36,19 @@ def check_vulnerabilities(ip, open_ports):
     vulnerabilities = []
     for port in open_ports:
         if port == 22:
-            vulnerabilities.append('SSH may be vulnerable to brute-force attacks.')
+            vulnerabilities.append('Port 22 (SSH) may be vulnerable to brute-force attacks. Ensure strong passwords and consider using key-based authentication.')
         elif port == 80:
-            vulnerabilities.append('HTTP may be vulnerable to attacks if not properly secured.')
+            vulnerabilities.append('Port 80 (HTTP) may be vulnerable to various web attacks such as XSS, SQL injection, etc. Ensure web applications are secure.')
+        elif port == 443:
+            vulnerabilities.append('Port 443 (HTTPS) may have SSL/TLS vulnerabilities. Ensure you use up-to-date certificates and protocols.')
+        elif port == 21:
+            vulnerabilities.append('Port 21 (FTP) may be vulnerable to brute-force attacks and should use secure versions like FTPS or SFTP.')
+        elif port == 25:
+            vulnerabilities.append('Port 25 (SMTP) can be used for spamming if not properly secured. Ensure mail servers are configured correctly.')
+        elif port == 3306:
+            vulnerabilities.append('Port 3306 (MySQL) may be vulnerable to unauthorized access. Ensure strong passwords and proper network segmentation.')
+        elif port == 3389:
+            vulnerabilities.append('Port 3389 (RDP) may be vulnerable to brute-force attacks. Use strong passwords and consider network-level authentication.')
     return vulnerabilities
 
 def scan_network(ip_range, ports):
@@ -65,7 +75,7 @@ def validate_ip(ip):
         return False
 
 def check_for_update():
-    url = "https://raw.githubusercontent.com/kar-ik/network-scanner/main/version.txt"
+    url = "https://raw.githubusercontent.com/your-username/your-repository/main/version.txt"
     response = requests.get(url)
     
     if response.status_code == 200:
@@ -88,7 +98,7 @@ def main():
     check_for_update()
     
     user_input = input("Enter IP address or IP range (e.g., 192.168.1.1 or 192.168.1.1-192.168.1.254): ")
-    ports = [22, 80, 443, 8080]
+    ports = [22, 80, 443, 21, 25, 3306, 3389]  # Common ports to scan
 
     if '-' in user_input:
         start_ip, end_ip = user_input.split('-')
