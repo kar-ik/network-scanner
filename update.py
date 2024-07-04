@@ -14,7 +14,7 @@ def update_script():
 
 def main():
     choice = input("Do you want to update the tool? (yes/no): ").strip().lower()
-    if choice == 'yes'&'y':
+    if choice == 'yes', 'y':
         update_script()
     else:
         print("Update canceled.")
