@@ -11,7 +11,7 @@ git clone https://github.com/kar-ik/network-traffic-monitor.git
 cd network-traffic-monitor
 pip install -r requirements.txt
 ```
-# Usage
+## Usage
 
 Run the tool:
 
