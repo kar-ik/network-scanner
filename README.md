@@ -1,6 +1,6 @@
-# Network Traffic Monitor
+# Network Scanner Tool
 
-This project contains a tool for real-time network traffic monitoring and analysis using Scapy .
+This project contains a tool for scanning network and IPs using Scapy .
 
 ## Installation
 
