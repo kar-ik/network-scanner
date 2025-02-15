@@ -12,59 +12,60 @@ def scan_ip(ip):
     try:
         arp_request = scapy.ARP(pdst=ip)
         broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
-        arp_request_broadcast = broadcast/arp_request
+        arp_request_broadcast = broadcast / arp_request
         answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]
-        devices = []
-        for element in answered_list:
-            devices.append({'ip': element[1].psrc, 'mac': element[1].hwsrc})
+        devices = [{'ip': element[1].psrc, 'mac': element[1].hwsrc} for element in answered_list]
         return devices
-    except Exception as e:
+    except Exception:
         return []
+
+def scan_port(ip, port):
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(1)
+            if sock.connect_ex((ip, port)) == 0:
+                return port
+    except Exception:
+        return None
 
 def scan_ports(ip, ports):
     open_ports = []
-    for port in ports:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex((ip, port))
-        if result == 0:
-            open_ports.append(port)
-        sock.close()
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(scan_port, ip, port): port for port in ports}
+        for future in futures:
+            result = future.result()
+            if result:
+                open_ports.append(result)
     return open_ports
 
-def check_vulnerabilities(ip, open_ports):
-    vulnerabilities = []
-    for port in open_ports:
-        if port == 22:
-            vulnerabilities.append('Port 22 (SSH) may be vulnerable to brute-force attacks. Ensure strong passwords and consider using key-based authentication.')
-        elif port == 80:
-            vulnerabilities.append('Port 80 (HTTP) may be vulnerable to various web attacks such as XSS, SQL injection, etc. Ensure web applications are secure.')
-        elif port == 443:
-            vulnerabilities.append('Port 443 (HTTPS) may have SSL/TLS vulnerabilities. Ensure you use up-to-date certificates and protocols.')
-        elif port == 21:
-            vulnerabilities.append('Port 21 (FTP) may be vulnerable to brute-force attacks and should use secure versions like FTPS or SFTP.')
-        elif port == 25:
-            vulnerabilities.append('Port 25 (SMTP) can be used for spamming if not properly secured. Ensure mail servers are configured correctly.')
-        elif port == 3306:
-            vulnerabilities.append('Port 3306 (MySQL) may be vulnerable to unauthorized access. Ensure strong passwords and proper network segmentation.')
-        elif port == 3389:
-            vulnerabilities.append('Port 3389 (RDP) may be vulnerable to brute-force attacks. Use strong passwords and consider network-level authentication.')
-    return vulnerabilities
+def check_vulnerabilities(open_ports):
+    vulnerabilities = {
+        22: "SSH may be vulnerable to brute-force attacks. Use strong authentication.",
+        80: "HTTP may be vulnerable to XSS, SQL injection. Secure web applications.",
+        443: "HTTPS may have SSL/TLS vulnerabilities. Use updated certificates.",
+        21: "FTP may be insecure. Prefer SFTP or FTPS.",
+        25: "SMTP can be exploited for spamming. Secure mail servers.",
+        3306: "MySQL may be vulnerable to unauthorized access. Enforce strong security.",
+        3389: "RDP may be vulnerable to brute-force attacks. Use network-level authentication."
+    }
+    return [vulnerabilities[port] for port in open_ports if port in vulnerabilities]
 
 def scan_network(ip_range, ports):
     devices = []
-    with ThreadPoolExecutor(max_workers=100) as executor:
+    with ThreadPoolExecutor(max_workers=50) as executor:
         futures = [executor.submit(scan_ip, ip) for ip in ip_range]
         for future in futures:
             devices.extend(future.result())
-
+    
     results = {}
     for device in devices:
         ip = device['ip']
         open_ports = scan_ports(ip, ports)
-        vulnerabilities = check_vulnerabilities(ip, open_ports)
-        results[ip] = {'open_ports': open_ports, 'vulnerabilities': vulnerabilities}
-
+        results[ip] = {
+            'open_ports': open_ports,
+            'vulnerabilities': check_vulnerabilities(open_ports)
+        }
+    
     return results
 
 def validate_ip(ip):
@@ -76,48 +77,54 @@ def validate_ip(ip):
 
 def check_for_update():
     url = "https://raw.githubusercontent.com/your-username/your-repository/main/version.txt"
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        with open("version.txt", "r") as file:
-            current_version = file.read().strip()
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
         latest_version = response.text.strip()
-        
+
+        if os.path.exists("version.txt"):
+            with open("version.txt", "r") as file:
+                current_version = file.read().strip()
+        else:
+            current_version = "0.0.0"
+
         if current_version != latest_version:
             print("A new version of the tool is available.")
             choice = input("Do you want to update the tool? (yes/no): ").strip().lower()
             if choice == 'yes':
-                os.system("python update_tool.py")
-                exit()
+                update_tool()
             else:
                 print("Continuing with the current version.")
-    else:
+    except requests.RequestException:
         print("Failed to check for updates. Please check your internet connection.")
+
+def update_tool():
+    print("Updating the tool...")
+    os.system("git pull origin main")  
+    print("Update complete. Restarting...")
+    os.execv(__file__, ['python'] + os.sys.argv)
 
 def main():
     check_for_update()
-    
     user_input = input("Enter IP address or IP range (e.g., 192.168.1.1 or 192.168.1.1-192.168.1.254): ")
-    ports = [22, 80, 443, 21, 25, 3306, 3389]  # Common ports to scan
+    ports = [22, 80, 443, 21, 25, 3306, 3389]  
 
     if '-' in user_input:
         start_ip, end_ip = user_input.split('-')
         if not (validate_ip(start_ip) and validate_ip(end_ip)):
             print("Invalid IP range. Please enter a valid IP address or range.")
             return
-
+        
         start_ip = ipaddress.IPv4Address(start_ip)
         end_ip = ipaddress.IPv4Address(end_ip)
-        ip_range = [str(ip) for ip in ipaddress.summarize_address_range(start_ip, end_ip)]
+        ip_range = [str(ip) for ip in range(int(start_ip), int(end_ip) + 1)]
     else:
         if not validate_ip(user_input):
             print("Invalid IP address. Please enter a valid IP address.")
             return
-
         ip_range = [user_input]
 
     print("Starting network scan...")
-
     results = scan_network(ip_range, ports)
 
     if not results:
